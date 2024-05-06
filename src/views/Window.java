@@ -18,14 +18,14 @@ public class Window extends JFrame {
 
     public Window() throws LineUnavailableException, UnsupportedAudioFileException, IOException, InterruptedException {
         this.clip = AudioSystem.getClip();
-        //playMusic("avatar");
+        playMusic("avatar");
         initComponents();
 
         setVisible(true);
         RepaintThread thread = new RepaintThread(bgPanel);
         thread.start();
 
-        //bgPanel.transition(false, 1, 0);
+        bgPanel.transition(false, 1, 0);
     }
 
     private void initComponents() {

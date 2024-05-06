@@ -25,8 +25,8 @@ public class RepaintThread extends Thread {
                 if (screen.angRotate >= 2 * Math.PI) {
                     count++;
                     if(count == 100) {
-                        screen.angRotate = 0;
                         count = 0;
+                        screen.angRotate = 0;
                     }
                 }
 
@@ -37,10 +37,10 @@ public class RepaintThread extends Thread {
                     screen.xScale -= speed;
                     screen.yScale -= speed;
                 }
-                if (screen.xScale >= 1.5) {
+                if (screen.xScale >= 2) {
                     growing = false;
                 }
-                if (screen.xScale <= 0.5) {
+                if (screen.xScale <= 1.1) {
                     growing = true;
                 }
 

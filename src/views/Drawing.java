@@ -243,17 +243,21 @@ public class Drawing {
         double dx = x2 - x1;
         double dy = y2 - y1;
         double alpha = dx != 0 ? Math.atan(dy / dx) : Math.PI / 2;
-        System.out.println(dx);
         if(dx < 0) {
             alpha += Math.PI;
         }
         if(x1 > x2) {
             alpha += Math.PI;
         }
-        System.out.println(Math.toDegrees(alpha));
+        /*System.out.println("Angle: " + Math.toDegrees(alpha));
+        System.out.println(Math.sin(alpha));*/
+
+
+        if(x1 > x2 || (x1 == x2 && y1 > y2)) ry *= -1;
 
         for (int i = 0; i < numPoints; i++) {
             double t = (i * Math.PI) / numPoints;
+            double tf = ((i + 1) * Math.PI) / numPoints;
 
            /* int x = xc + (int) (rx * Math.cos(t));
             int y = yc + (int) (ry * Math.sin(t));*/
@@ -261,11 +265,16 @@ public class Drawing {
             int x = xc + (int) ((double) rx * Math.cos(t) * Math.cos(alpha) - (double) ry * Math.sin(t) * Math.sin(alpha));
             int y = yc + (int) ((double) rx * Math.cos(t) * Math.sin(alpha) + (double) ry * Math.sin(t) * Math.cos(alpha));
 
+            int xf = xc + (int) ((double) rx * Math.cos(tf) * Math.cos(alpha) - (double) ry * Math.sin(tf) * Math.sin(alpha));
+            int yf = yc + (int) ((double) rx * Math.cos(tf) * Math.sin(alpha) + (double) ry * Math.sin(tf) * Math.cos(alpha));
 
-            draw(x, y, color, buffer);
+
+            drawPolyline(x, y, xf, yf, color, numPoints + 1, i + 1, buffer);
 
 
         }
+       /* fillCircle(x1, y1, 2, Color.white, buffer);*/
+       /* fillCircle(x2, y2, 2, Color.black, buffer);*/
     }
 
     public static void drawCircle(int xc, int yc, int r, Color color, BufferedImage buffer) {
