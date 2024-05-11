@@ -2,16 +2,16 @@ package animations;
 
 import views.AnimatedScreen;
 
-public class WaterAnimation extends Thread {
+public class FireAnimation extends Thread {
     public AnimatedScreen screen;
 
-    public WaterAnimation(AnimatedScreen screen) {
+    public FireAnimation(AnimatedScreen screen) {
         this.screen = screen;
     }
 
     public void run () {
-        while(screen.element.equals("water")) {
-            System.out.println("Agua");
+        while(screen.element.equals("fire")) {
+
 
             try {
                 sleep(20);
