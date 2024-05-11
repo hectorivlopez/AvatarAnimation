@@ -4,14 +4,14 @@ import views.AnimatedScreen;
 
 public class AirAnimation extends Thread {
     public AnimatedScreen screen;
-    public boolean rigth;
+    public boolean right;
     public boolean growing;
     public double t;
     public RotateAangThread rotationThread;
 
     public AirAnimation(AnimatedScreen screen) {
         this.screen = screen;
-        this.rigth = true;
+        this.right = true;
         this.growing = true;
         this.t = Math.PI;
 
@@ -41,23 +41,23 @@ public class AirAnimation extends Thread {
 
             // Direction
             if (t >= 0 && t <= Math.PI) {
-                if (this.rigth) {
+                if (this.right) {
                     screen.aangMirror = -1;
-                    this.rigth = false;
+                    this.right = false;
                     screen.xScale = midScale;
 
                 }
             } else {
-                if (!this.rigth) {
+                if (!this.right) {
                     screen.aangMirror = 1;
-                    this.rigth = true;
+                    this.right = true;
                     screen.xScale = midScale;
 
                 }
             }
 
             // Scale
-            if (!this.rigth) {
+            if (!this.right) {
                 if (screen.xAang > 500) {
                     screen.xScale += scaleSpeed;
 
@@ -78,7 +78,7 @@ public class AirAnimation extends Thread {
             if (t >= 2 * Math.PI) t = 0;
 
             // ------------------------------ Rotation ------------------------------
-            if (this.rigth && screen.xAang > 340 && screen.xAang < 360) {
+            if (this.right && screen.xAang > 340 && screen.xAang < 360) {
                 if(!inAreaToRotate) {
                     if (willRotate) {
                         aangRotate("left", rotationSpeed);
@@ -117,7 +117,7 @@ public class AirAnimation extends Thread {
         public String direction;
         public double rotationSpeed;
 
-        public RotateAangThread(AnimatedScreen screen, String direction, double rotationSpeed {
+        public RotateAangThread(AnimatedScreen screen, String direction, double rotationSpeed) {
             this.screen = screen;
             this.direction = direction;
             this.rotationSpeed = rotationSpeed;
