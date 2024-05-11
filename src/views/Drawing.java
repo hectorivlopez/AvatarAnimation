@@ -14,6 +14,28 @@ public class Drawing {
     }
 
     // ------------------------------ Lines ------------------------------
+    public static int[] calVector(int length, double angle, String angUnit) {
+        if (!angUnit.equals("R")) angle = Math.toRadians(angle);
+        while (angle < 0) angle += (2 * Math.PI);
+
+        double m = Math.tan(angle);
+        int dx, dy;
+
+        if (Math.abs(m) < 1) {
+            int xDirection = angle > (Math.PI / 2) && angle < (3 * Math.PI / 2) ? -1 : 1;
+
+            dx = xDirection * (int) Math.round(length / Math.sqrt(1 + m * m));
+            dy = (int) Math.round(m * dx);
+        } else {
+            int yDirection = angle > 0 && angle < Math.PI ? 1 : -1;
+
+            dy = yDirection * (int) Math.round(length / Math.sqrt(1 + 1 / (m * m)));
+            dx = (int) Math.round(dy / m);
+        }
+
+        return new int[]{dx, dy};
+    }
+
     public static void drawLine(int x1, int y1, int x2, int y2, Color color, BufferedImage buffer) {
         double m = (double) (y2 - y1) / (x2 - x1);
         if ((x2 - x1) == 0) {
@@ -215,6 +237,14 @@ public class Drawing {
 
     }
 
+    public static int[] drawVector(int x0, int y0, int length, double angle, String angUnit, Color color, BufferedImage buffer) {
+        // Calculate the direction vectors for the lines
+        int[] vector = calVector(length, angle, angUnit);
+
+        drawLine(x0, y0, x0 + vector[0], y0 + vector[1], color, buffer);
+
+        return new int[]{x0 + vector[0], y0 + vector[1]};
+    }
 
     // ------------------------------ Shapes ------------------------------
     public static void drawRect(int x1, int y1, int x2, int y2, Color color, BufferedImage buffer) {
@@ -232,28 +262,36 @@ public class Drawing {
 
     }
 
-    public static void drawArc(int x1, int y1, int x2, int y2, int ry, Color color, BufferedImage buffer) {
+    public static void drawPolygon(int[] xPoints, int[] yPoints, Color color, BufferedImage buffer) {
+        for (int i = 0; i < xPoints.length - 1; i++) {
+            drawLine(xPoints[i], yPoints[i], xPoints[i + 1], yPoints[i + 1], color, buffer);
+        }
+        drawLine(xPoints[xPoints.length - 1], yPoints[yPoints.length - 1], xPoints[0], yPoints[0], color, buffer);
+
+    }
+
+    public static void drawArc(int x1, int y1, int x2, int y2, int ry, int numPoints, Color color, BufferedImage buffer) {
         int xc = (int) (Math.min(x1, x2) + Math.abs(x2 - x1) / (double) 2);
         int yc = (int) (Math.min(y1, y2) + Math.abs(y2 - y1) / (double) 2);
 
         //int rx = (int) (Math.abs(x2 - x1) / (double) 2);
         int rx = (int) (Math.sqrt(Math.pow(Math.abs(x2 - x1), 2) + Math.pow(Math.abs(y2 - y1), 2))) / 2;
-
-        int numPoints = (int) (Math.PI * Math.max(rx, ry)); // Calculate number of points based on circumference
+        if (numPoints == 0) {
+            numPoints = (int) (Math.PI * Math.max(rx, ry)); // Calculate number of points based on circumference
+        }
         double dx = x2 - x1;
         double dy = y2 - y1;
         double alpha = dx != 0 ? Math.atan(dy / dx) : Math.PI / 2;
-        if(dx < 0) {
+        if (dx < 0) {
             alpha += Math.PI;
         }
-        if(x1 > x2) {
+        if (x1 > x2) {
             alpha += Math.PI;
         }
         /*System.out.println("Angle: " + Math.toDegrees(alpha));
         System.out.println(Math.sin(alpha));*/
 
-
-        if(x1 > x2 || (x1 == x2 && y1 > y2)) ry *= -1;
+        if (x1 > x2 || (x1 == x2 && y1 > y2)) ry *= -1;
 
         for (int i = 0; i < numPoints; i++) {
             double t = (i * Math.PI) / numPoints;
@@ -268,13 +306,35 @@ public class Drawing {
             int xf = xc + (int) ((double) rx * Math.cos(tf) * Math.cos(alpha) - (double) ry * Math.sin(tf) * Math.sin(alpha));
             int yf = yc + (int) ((double) rx * Math.cos(tf) * Math.sin(alpha) + (double) ry * Math.sin(tf) * Math.cos(alpha));
 
+            if (i == 0) {
+                if (x1 > x2 || (x1 == x2 && y1 > y2)) {
+                    x = x1;
+                    y = y1;
+                } else {
+                    x = x2;
+                    y = y2;
+                }
 
+            }
+            if (i == numPoints - 1) {
+                if (x1 > x2 || (x1 == x2 && y1 > y2)) {
+                    xf = x2;
+                    yf = y2;
+                } else {
+                    xf = x1;
+                    yf = y1;
+                }
+            }
+            /*if(i == numPoints - 1) {
+                xf = x2;
+                yf = y2;
+            }*/
             drawPolyline(x, y, xf, yf, color, numPoints + 1, i + 1, buffer);
 
 
         }
-       /* fillCircle(x1, y1, 2, Color.white, buffer);*/
-       /* fillCircle(x2, y2, 2, Color.black, buffer);*/
+        /* fillCircle(x1, y1, 2, Color.white, buffer);*/
+        /* fillCircle(x2, y2, 2, Color.black, buffer);*/
     }
 
     public static void drawCircle(int xc, int yc, int r, Color color, BufferedImage buffer) {
@@ -345,18 +405,22 @@ public class Drawing {
             colorRate = Math.ceil(colorRate);
         }
 
-        for (int i = 0; i < numPoints; i++) {
+        for (int i = 0; i <= numPoints; i++) {
             double t = (i * 2 * Math.PI) / numPoints;
-
+            double tf = ((i + 1) * 2 * Math.PI) / numPoints;
            /* int x = xc + (int) (rx * Math.cos(t));
             int y = yc + (int) (ry * Math.sin(t));*/
             int x = xc + (int) ((double) rx * Math.cos(t) * Math.cos(alpha) - (double) ry * Math.sin(t) * Math.sin(alpha));
             int y = yc + (int) ((double) rx * Math.cos(t) * Math.sin(alpha) + (double) ry * Math.sin(t) * Math.cos(alpha));
 
+            int xf = xc + (int) ((double) rx * Math.cos(tf) * Math.cos(alpha) - (double) ry * Math.sin(tf) * Math.sin(alpha));
+            int yf = yc + (int) ((double) rx * Math.cos(tf) * Math.sin(alpha) + (double) ry * Math.sin(tf) * Math.cos(alpha));
+
 
             Color grad = new Color(R, g, b);
 
-            draw(x, y, color != null ? color : grad, buffer);
+            /* draw(x, y, color != null ? color : grad, buffer);*/
+            drawPolyline(x, y, xf, yf, color, numPoints + 1, i + 1, buffer);
 
             if (i % (int) colorRate == 0) {
                 b += colorIncrement;
@@ -451,7 +515,7 @@ public class Drawing {
     public static void fillCircle(int xc, int yc, int r, Color color, BufferedImage buffer) {
         drawCircle(xc, yc, r, color, buffer);
 
-        floodFill(xc, yc, color, buffer);
+        if (r > 1) floodFill(xc, yc, color, buffer);
     }
 
     public static void fillEllipse(int xc, int yc, int rx, int ry, double angle, Color color, BufferedImage buffer) {
@@ -461,9 +525,8 @@ public class Drawing {
 
     public static void fillPolygon(int[] xPoints, int[] yPoints, Color color, BufferedImage buffer) {
         int nPoints = xPoints.length;
-        Graphics g = buffer.getGraphics();
-        g.setColor(color);
-        g.drawPolygon(xPoints, yPoints, nPoints);
+
+        drawPolygon(xPoints, yPoints, color, buffer);
 
         // Calculate centroid of the polygon
         int sumX = 0;
@@ -518,7 +581,7 @@ public class Drawing {
 
         // Create initial matrix
         int[][] initialMatrix = new int[xPoints.length][xPoints.length];
-        for(int i = 0; i < xPoints.length; i++) {
+        for (int i = 0; i < xPoints.length; i++) {
             initialMatrix[0][i] = xPoints[i];
             initialMatrix[1][i] = yPoints[i];
         }
@@ -583,7 +646,7 @@ public class Drawing {
 
         // Create initial matrix
         int[][] initialMatrix = new int[xPoints.length][xPoints.length];
-        for(int i = 0; i < xPoints.length; i++) {
+        for (int i = 0; i < xPoints.length; i++) {
             initialMatrix[0][i] = xPoints[i];
             initialMatrix[1][i] = yPoints[i];
         }
@@ -641,7 +704,7 @@ public class Drawing {
         fillRect(xPoints[0], yPoints[0], xPoints[1], yPoints[2], color, buffer);
     }
 
-    public static void fillCircleScaled(int xc, int yc, int r, double scale, int x0, int y0,  Color color, BufferedImage buffer) {
+    public static void fillCircleScaled(int xc, int yc, int r, double scale, int x0, int y0, Color color, BufferedImage buffer) {
         int[] circleXPoints = new int[]{xc, xc + r, r};
         int[] circleYPoints = new int[]{yc, yc + r, r};
 
@@ -650,7 +713,7 @@ public class Drawing {
 
     }
 
-    public static void fillCircleScaledRotated(int xc, int yc, int r, double scale, double angle, int x0Scale, int y0Scale,  int x0Rotate, int y0Rotate,  Color color, BufferedImage buffer) {
+    public static void fillCircleScaledRotated(int xc, int yc, int r, double scale, double angle, int x0Scale, int y0Scale, int x0Rotate, int y0Rotate, Color color, BufferedImage buffer) {
         int[] circleXPoints = new int[]{xc, xc + r, r};
         int[] circleYPoints = new int[]{yc, yc + r, r};
 
